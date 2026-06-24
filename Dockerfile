@@ -1,19 +1,17 @@
 FROM ubuntu:22.04
 
-# Enable 32‑bit architecture (needed for many Windows apps)
 RUN dpkg --add-architecture i386 && \
     apt update && \
-    apt install -y wine64 wine32 wget xvfb && \
+    apt install -y wine64 wine32 wget cabextract && \
     apt clean
 
-# Create app directory
+# Install Wine Mono (needed for .NET apps)
+RUN wget https://dl.winehq.org/wine/wine-mono/9.0.0/wine-mono-9.0.0-x86.msi -O /tmp/wine-mono.msi && \
+    wine64 msiexec /i /tmp/wine-mono.msi /quiet && \
+    rm /tmp/wine-mono.msi
+
 WORKDIR /app
 
-# Copy your Windows executable into the container
 COPY audit.exe /app/audit.exe
 
-# Optional: make a fake display for GUI apps (Wine sometimes needs it)
-ENV DISPLAY=:0
-
-# Run your Windows program
-CMD ["wine", "/app/audit.exe"]
+CMD ["wine64", "/app/audit.exe"]
